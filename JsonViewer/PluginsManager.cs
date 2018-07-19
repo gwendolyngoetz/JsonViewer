@@ -1,24 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Collections.Specialized;
-using System.Configuration;
-using System.Reflection;
-using System.IO;
 
 namespace EPocalipse.Json.Viewer
 {
-    class PluginsManager
+    internal class PluginsManager
     {
-        List<IJsonViewerPlugin> plugins = new List<IJsonViewerPlugin>();
-        List<ICustomTextProvider> textVisualizers = new List<ICustomTextProvider>();
-        List<IJsonVisualizer> visualizers = new List<IJsonVisualizer>();
-        IJsonVisualizer _defaultVisualizer;
-
-        public PluginsManager()
-        {
-        }
-
+        private readonly List<IJsonViewerPlugin> _plugins = new List<IJsonViewerPlugin>();
+        private readonly List<ICustomTextProvider> _textVisualizers = new List<ICustomTextProvider>();
+        private readonly List<IJsonVisualizer> _visualizers = new List<IJsonVisualizer>();
+        private IJsonVisualizer _defaultVisualizer;
         public void Initialize()
         {
             InitDefaults();
@@ -26,49 +15,34 @@ namespace EPocalipse.Json.Viewer
 
         private void InitDefaults()
         {
-            if (this._defaultVisualizer == null)
+            if (_defaultVisualizer != null)
             {
-                AddPlugin(new JsonObjectVisualizer());
-                AddPlugin(new AjaxNetDateTime());
-                AddPlugin(new CustomDate());
+                return;
             }
+
+            AddPlugin(new JsonObjectVisualizer());
+            AddPlugin(new AjaxNetDateTime());
+            AddPlugin(new CustomDate());
         }
 
         private void AddPlugin(IJsonViewerPlugin plugin)
         {
-            plugins.Add(plugin);
-            if (plugin is ICustomTextProvider)
-                textVisualizers.Add((ICustomTextProvider)plugin);
-            if (plugin is IJsonVisualizer)
+            _plugins.Add(plugin);
+            switch (plugin)
             {
-                if (_defaultVisualizer == null)
-                    _defaultVisualizer = (IJsonVisualizer)plugin;
-                visualizers.Add((IJsonVisualizer)plugin);
+                case ICustomTextProvider provider:
+                    _textVisualizers.Add(provider);
+                    break;
+                case IJsonVisualizer visualizer:
+                    if (_defaultVisualizer == null)
+                        _defaultVisualizer = visualizer;
+                    _visualizers.Add(visualizer);
+                    break;
             }
         }
 
-        public IEnumerable<ICustomTextProvider> TextVisualizers
-        {
-            get
-            {
-                return textVisualizers;
-            }
-        }
-
-        public IEnumerable<IJsonVisualizer> Visualizers
-        {
-            get
-            {
-                return visualizers;
-            }
-        }
-
-        public IJsonVisualizer DefaultVisualizer
-        {
-            get
-            {
-                return _defaultVisualizer;
-            }
-        }
+        public IEnumerable<ICustomTextProvider> TextVisualizers => _textVisualizers;
+        public IEnumerable<IJsonVisualizer> Visualizers => _visualizers;
+        public IJsonVisualizer DefaultVisualizer => _defaultVisualizer;
     }
 }

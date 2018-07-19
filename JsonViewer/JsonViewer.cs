@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Drawing.Design;
 using Newtonsoft.Json;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using EPocalipse.Json.Viewer.Properties;
 
@@ -16,9 +17,8 @@ namespace EPocalipse.Json.Viewer
     public partial class JsonViewer : UserControl
     {
         private string _json;
-        private int _maxErrorCount = 25;
         private ErrorDetails _errorDetails;
-        private PluginsManager _pluginsManager = new PluginsManager();
+        private readonly PluginsManager _pluginsManager = new PluginsManager();
         bool _updating;
         Control _lastVisualizerControl;
         private bool ignoreSelChange;
@@ -39,10 +39,7 @@ namespace EPocalipse.Json.Viewer
         [Editor("System.ComponentModel.Design.MultilineStringEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(UITypeEditor))]
         public string Json
         {
-            get
-            {
-                return _json;
-            }
+            get => _json;
             set
             {
                 if (_json != value)
@@ -55,17 +52,7 @@ namespace EPocalipse.Json.Viewer
         }
 
         [DefaultValue(25)]
-        public int MaxErrorCount
-        {
-            get
-            {
-                return _maxErrorCount;
-            }
-            set
-            {
-                _maxErrorCount = value;
-            }
-        }
+        public int MaxErrorCount { get; set; } = 25;
 
         private void Redraw()
         {
@@ -117,13 +104,13 @@ namespace EPocalipse.Json.Viewer
                 catch (Exception e)
                 {
                     _errorDetails._err = e.Message;
-                    _errorDetails._pos = strReader.Position;
+                    _errorDetails.Position = strReader.Position;
                 }
             }
             if (_errorDetails.Error == null)
                 _errorDetails._err = parserError.Message;
             if (_errorDetails.Position == 0)
-                _errorDetails._pos = _json.Length;
+                _errorDetails.Position = _json.Length;
             if (!txtJson.ContainsFocus)
                 MarkError(_errorDetails);
             ShowInfo(_errorDetails);
@@ -168,13 +155,7 @@ namespace EPocalipse.Json.Viewer
         }
 
         [Browsable(false)]
-        public ErrorDetails ErrorDetails
-        {
-            get
-            {
-                return _errorDetails;
-            }
-        }
+        public ErrorDetails ErrorDetails => _errorDetails;
 
         public void Clear()
         {
@@ -204,13 +185,7 @@ namespace EPocalipse.Json.Viewer
         }
 
         [Browsable(false)]
-        public bool HasErrors
-        {
-            get
-            {
-                return _errorDetails._err != null;
-            }
-        }
+        public bool HasErrors => _errorDetails._err != null;
 
         private void txtJson_TextChanged(object sender, EventArgs e)
         {
@@ -237,7 +212,7 @@ namespace EPocalipse.Json.Viewer
 
         public bool FindNext(string text, bool includeSelected)
         {
-            TreeNode startNode = tvJson.SelectedNode;
+            var startNode = tvJson.SelectedNode;
             if (startNode == null && HasNodes())
                 startNode = GetRootNode();
             if (startNode != null)
@@ -260,7 +235,7 @@ namespace EPocalipse.Json.Viewer
             if (includeSelected && IsMatchingNode(startNode, text))
                 return startNode;
 
-            TreeNode originalStartNode = startNode;
+            var originalStartNode = startNode;
             startNode = GetNextNode(startNode);
             text = text.ToLower();
             while (startNode != originalStartNode)
@@ -275,39 +250,45 @@ namespace EPocalipse.Json.Viewer
 
         private TreeNode GetNextNode(TreeNode startNode)
         {
-            TreeNode next = startNode.FirstNode ?? startNode.NextNode;
-            if (next == null)
+            var next = startNode.FirstNode ?? startNode.NextNode;
+            if (next != null)
             {
-                while (startNode != null && next == null)
+                return next;
+            }
+
+            while (startNode != null && next == null)
+            {
+                startNode = startNode.Parent;
+                if (startNode != null)
                 {
-                    startNode = startNode.Parent;
-                    if (startNode != null)
-                        next = startNode.NextNode;
-                }
-                if (next == null)
-                {
-                    next = GetRootNode();
-                    FlashControl(txtFind, Color.Cyan);
+                    next = startNode.NextNode;
                 }
             }
+
+            if (next != null)
+            {
+                return next;
+            }
+
+            next = GetRootNode();
+            FlashControl(txtFind, Color.Cyan);
+
             return next;
         }
 
         private bool IsMatchingNode(TreeNode startNode, string text)
         {
-            return (startNode.Text.ToLower().Contains(text));
+            return startNode.Text.ToLower().Contains(text);
         }
 
         private JsonViewerTreeNode GetRootNode()
         {
-            if (tvJson.Nodes.Count > 0)
-                return (JsonViewerTreeNode)tvJson.Nodes[0];
-            return null;
+            return tvJson.Nodes.Count > 0 ? (JsonViewerTreeNode) tvJson.Nodes[0] : null;
         }
 
         private bool HasNodes()
         {
-            return (tvJson.Nodes.Count > 0);
+            return tvJson.Nodes.Count > 0;
         }
 
         private void txtFind_KeyDown(object sender, KeyEventArgs e)
@@ -324,7 +305,7 @@ namespace EPocalipse.Json.Viewer
 
         private void FlashControl(Control control, Color color)
         {
-            Color prevColor = control.BackColor;
+            var prevColor = control.BackColor;
             try
             {
                 control.BackColor = color;
@@ -342,22 +323,25 @@ namespace EPocalipse.Json.Viewer
         {
             tabControl.SelectedIndex = (int)tab;
         }
-
+        
         private void btnFormat_Click(object sender, EventArgs e)
         {
             try
             {
-                string json = txtJson.Text;
+                var json = txtJson.Text;
                 var s = new JsonSerializer();
                 var reader = new JsonTextReader(new StringReader(json));
                 var jsonObject = s.Deserialize(reader);
+
                 if (jsonObject != null)
                 {
-                    StringWriter sWriter = new StringWriter();
-                    var writer = new JsonTextWriter(sWriter);
-                    writer.Formatting = Formatting.Indented;
-                    writer.Indentation = 4;
-                    writer.IndentChar = ' ';
+                    var sWriter = new StringWriter();
+                    var writer = new JsonTextWriter(sWriter)
+                    {
+                        Formatting = Formatting.Indented,
+                        Indentation = 4,
+                        IndentChar = ' '
+                    };
                     s.Serialize(writer, jsonObject);
                     txtJson.Text = sWriter.ToString();
                 }
@@ -385,10 +369,11 @@ namespace EPocalipse.Json.Viewer
 
         private void StripTextTo(char sChr, char eChr)
         {
-            string text = txtJson.Text;
-            int start = text.IndexOf(sChr);
-            int end = text.LastIndexOf(eChr);
-            int newLen = end - start + 1;
+            var text = txtJson.Text;
+            var start = text.IndexOf(sChr);
+            var end = text.LastIndexOf(eChr);
+            var newLen = end - start + 1;
+
             if (newLen > 1)
             {
                 txtJson.Text = text.Substring(start, newLen);
@@ -404,24 +389,14 @@ namespace EPocalipse.Json.Viewer
             _updating = true;
             try
             {
-                JsonViewerTreeNode node = (JsonViewerTreeNode)e.Node;
-                IJsonVisualizer lastActive = node.LastVisualizer;
-                if (lastActive == null)
-                    lastActive = (IJsonVisualizer)cbVisualizers.SelectedItem;
-                if (lastActive == null)
-                    lastActive = _pluginsManager.DefaultVisualizer;
+                var node = (JsonViewerTreeNode)e.Node;
+                var lastActive = (node.LastVisualizer ?? (IJsonVisualizer)cbVisualizers.SelectedItem) ?? _pluginsManager.DefaultVisualizer;
 
                 cbVisualizers.Items.Clear();
                 cbVisualizers.Items.AddRange(node.Visualizers.ToArray());
-                int index = cbVisualizers.Items.IndexOf(lastActive);
-                if (index != -1)
-                {
-                    cbVisualizers.SelectedIndex = index;
-                }
-                else
-                {
-                    cbVisualizers.SelectedIndex = cbVisualizers.Items.IndexOf(_pluginsManager.DefaultVisualizer);
-                }
+
+                var index = cbVisualizers.Items.IndexOf(lastActive);
+                cbVisualizers.SelectedIndex = index != -1 ? index : cbVisualizers.Items.IndexOf(_pluginsManager.DefaultVisualizer);
             }
             finally
             {
@@ -433,11 +408,11 @@ namespace EPocalipse.Json.Viewer
 
         private void ActivateVisualizer()
         {
-            IJsonVisualizer visualizer = (IJsonVisualizer)cbVisualizers.SelectedItem;
+            var visualizer = (IJsonVisualizer)cbVisualizers.SelectedItem;
             if (visualizer != null)
             {
-                JsonObject jsonObject = GetSelectedTreeNode().JsonObject;
-                Control visualizerCtrl = visualizer.GetControl(jsonObject);
+                var jsonObject = GetSelectedTreeNode().JsonObject;
+                var visualizerCtrl = visualizer.GetControl(jsonObject);
                 if (_lastVisualizerControl != visualizerCtrl)
                 {
                     pnlVisualizer.Controls.Remove(_lastVisualizerControl);
@@ -448,7 +423,6 @@ namespace EPocalipse.Json.Viewer
                 visualizer.Visualize(jsonObject);
             }
         }
-
 
         private void cbVisualizers_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -474,22 +448,30 @@ namespace EPocalipse.Json.Viewer
 
         private void InitVisualizers(JsonViewerTreeNode node)
         {
-            if (!node.Initialized)
+            if (node.Initialized)
             {
-                node.Initialized = true;
-                JsonObject jsonObject = node.JsonObject;
-                foreach (ICustomTextProvider textVis in _pluginsManager.TextVisualizers)
+                return;
+            }
+
+            node.Initialized = true;
+
+            var jsonObject = node.JsonObject;
+
+            foreach (var textVis in _pluginsManager.TextVisualizers)
+            {
+                if (textVis.CanVisualize(jsonObject))
                 {
-                    if (textVis.CanVisualize(jsonObject))
-                        node.TextVisualizers.Add(textVis);
+                    node.TextVisualizers.Add(textVis);
                 }
+            }
 
-                node.RefreshText();
+            node.RefreshText();
 
-                foreach (IJsonVisualizer visualizer in _pluginsManager.Visualizers)
+            foreach (var visualizer in _pluginsManager.Visualizers)
+            {
+                if (visualizer.CanVisualize(jsonObject))
                 {
-                    if (visualizer.CanVisualize(jsonObject))
-                        node.Visualizers.Add(visualizer);
+                    node.Visualizers.Add(visualizer);
                 }
             }
         }
@@ -531,7 +513,7 @@ namespace EPocalipse.Json.Viewer
             {
                 if (tvJson.SelectedNode != null)
                 {
-                    TreeNode topNode = tvJson.TopNode;
+                    var topNode = tvJson.TopNode;
                     tvJson.SelectedNode.ExpandAll();
                     tvJson.TopNode = topNode;
                 }
@@ -546,7 +528,7 @@ namespace EPocalipse.Json.Viewer
         {
             if (e.Button == MouseButtons.Right)
             {
-                TreeNode node = tvJson.GetNodeAt(e.Location);
+                var node = tvJson.GetNodeAt(e.Location);
                 if (node != null)
                 {
                     tvJson.SelectedNode = node;
@@ -584,11 +566,7 @@ namespace EPocalipse.Json.Viewer
 
         private void btnCopy_Click(object sender, EventArgs e)
         {
-            string text;
-            if (txtJson.SelectionLength > 0)
-                text = txtJson.SelectedText;
-            else
-                text = txtJson.Text;
+            var text = txtJson.SelectionLength > 0 ? txtJson.SelectedText : txtJson.Text;
             Clipboard.SetText(text);
         }
 
@@ -599,7 +577,7 @@ namespace EPocalipse.Json.Viewer
 
         private void mnuCopy_Click(object sender, EventArgs e)
         {
-            JsonViewerTreeNode node = GetSelectedTreeNode();
+            var node = GetSelectedTreeNode();
             if (node != null)
             {
                 Clipboard.SetText(node.Text);
@@ -610,9 +588,9 @@ namespace EPocalipse.Json.Viewer
         {
             JsonViewerTreeNode node = GetSelectedTreeNode();
 
-            if (node != null && node.JsonObject.Id != null)
+            if (node?.JsonObject.Id != null)
             {
-                JsonObject obj = node.Tag as JsonObject;
+                var obj = node.Tag as JsonObject;
                 Clipboard.SetText(obj.Id);
             }
             else
@@ -624,10 +602,10 @@ namespace EPocalipse.Json.Viewer
 
         private void mnuCopyValue_Click(object sender, EventArgs e)
         {
-            JsonViewerTreeNode node = GetSelectedTreeNode();
-            if (node != null && node.Tag != null)
+            var node = GetSelectedTreeNode();
+            if (node?.Tag != null)
             {
-                JsonObject obj = node.Tag as JsonObject;
+                var obj = node.Tag as JsonObject;
                 Clipboard.SetText(obj.Value.ToString());
             }
             else
@@ -640,7 +618,7 @@ namespace EPocalipse.Json.Viewer
         {
             if (lblError.Enabled && lblError.Tag != null)
             {
-                ErrorDetails err = (ErrorDetails)lblError.Tag;
+                var err = (ErrorDetails)lblError.Tag;
                 MarkError(err);
             }
         }
@@ -652,27 +630,19 @@ namespace EPocalipse.Json.Viewer
 
         private void removeSpecialCharsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string text = txtJson.Text;
+            var text = txtJson.Text;
             text = text.Replace(@"\""", @"""");
             txtJson.Text = text;
         }
 
         private void StripFromText(params char[] chars)
         {
-            string text = txtJson.Text;
-            foreach (char ch in chars)
-            {
-                text = text.Replace(ch.ToString(), "");
-            }
-            txtJson.Text = text;
+            txtJson.Text = chars.Aggregate(txtJson.Text, (current, ch) => current.Replace(ch.ToString(), ""));
         }
 
         private void btnViewSelected_Click(object sender, EventArgs e)
         {
-            if (btnViewSelected.Checked)
-                _json = txtJson.SelectedText.Trim();
-            else
-                _json = txtJson.Text.Trim();
+            _json = btnViewSelected.Checked ? txtJson.SelectedText.Trim() : txtJson.Text.Trim();
             Redraw();
         }
 
@@ -689,88 +659,41 @@ namespace EPocalipse.Json.Viewer
     public struct ErrorDetails
     {
         internal string _err;
-        internal int _pos;
 
-        public string Error
-        {
-            get
-            {
-                return _err;
-            }
-        }
+        public string Error => _err;
 
-        public int Position
-        {
-            get
-            {
-                return _pos;
-            }
-        }
+        public int Position { get; internal set; }
 
         public void Clear()
         {
             _err = null;
-            _pos = 0;
+            Position = 0;
         }
     }
 
     public class JsonViewerTreeNode : TreeNode
     {
-        JsonObject _jsonObject;
-        List<ICustomTextProvider> _textVisualizers = new List<ICustomTextProvider>();
-        List<IJsonVisualizer> _visualizers = new List<IJsonVisualizer>();
-        private bool _init;
-        private IJsonVisualizer _lastVisualizer;
-
         public JsonViewerTreeNode(JsonObject jsonObject)
         {
-            _jsonObject = jsonObject;
+            JsonObject = jsonObject;
         }
 
-        public List<ICustomTextProvider> TextVisualizers
-        {
-            get
-            {
-                return _textVisualizers;
-            }
-        }
+        public List<ICustomTextProvider> TextVisualizers { get; } = new List<ICustomTextProvider>();
 
-        public List<IJsonVisualizer> Visualizers
-        {
-            get
-            {
-                return _visualizers;
-            }
-        }
+        public List<IJsonVisualizer> Visualizers { get; } = new List<IJsonVisualizer>();
 
-        public JsonObject JsonObject
-        {
-            get
-            {
-                return _jsonObject;
-            }
-        }
+        public JsonObject JsonObject { get; }
 
-        internal bool Initialized
-        {
-            get
-            {
-                return _init;
-            }
-            set
-            {
-                _init = value;
-            }
-        }
+        internal bool Initialized { get; set; }
 
         internal void RefreshText()
         {
-            StringBuilder sb = new StringBuilder(_jsonObject.Text);
-            foreach (ICustomTextProvider textVisualizer in _textVisualizers)
+            var sb = new StringBuilder(JsonObject.Text);
+            foreach (ICustomTextProvider textVisualizer in TextVisualizers)
             {
                 try
                 {
-                    string customText = textVisualizer.GetText(_jsonObject);
+                    string customText = textVisualizer.GetText(JsonObject);
                     sb.Append(" (" + customText + ")");
                 }
                 catch
@@ -778,22 +701,16 @@ namespace EPocalipse.Json.Viewer
                     //silently ignore
                 }
             }
-            string text = sb.ToString();
-            if (text != this.Text)
-                this.Text = text;
+
+            var text = sb.ToString();
+
+            if (text != Text)
+            {
+                Text = text;
+            }
         }
 
-        public IJsonVisualizer LastVisualizer
-        {
-            get
-            {
-                return _lastVisualizer;
-            }
-            set
-            {
-                _lastVisualizer = value;
-            }
-        }
+        public IJsonVisualizer LastVisualizer { get; set; }
     }
 
     public enum Tabs { Viewer, Text };

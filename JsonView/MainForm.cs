@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using EPocalipse.Json.Viewer;
 using System.IO;
+using EPocalipse.Json.Viewer;
 
 namespace EPocalipse.Json.JsonView
 {
@@ -19,10 +14,10 @@ namespace EPocalipse.Json.JsonView
 
         private void MainForm_Shown(object sender, EventArgs e)
         {
-            string[] args = Environment.GetCommandLineArgs();
-            for (int i = 1; i < args.Length; i++)
+            var args = Environment.GetCommandLineArgs();
+            for (var i = 1; i < args.Length; i++)
             {
-                string arg = args[i];
+                var arg = args[i];
                 if (arg.Equals("/c", StringComparison.OrdinalIgnoreCase))
                 {
                     LoadFromClipboard();
@@ -36,15 +31,15 @@ namespace EPocalipse.Json.JsonView
 
         private void LoadFromFile(string fileName)
         {
-            string json = File.ReadAllText(fileName);
+            var json = File.ReadAllText(fileName);
             JsonViewer.ShowTab(Tabs.Viewer);
             JsonViewer.Json = json;
         }
 
         private void LoadFromClipboard()
         {
-            string json = Clipboard.GetText();
-            if (!String.IsNullOrEmpty(json))
+            var json = Clipboard.GetText();
+            if (!string.IsNullOrEmpty(json))
             {
                 JsonViewer.ShowTab(Tabs.Viewer);
                 JsonViewer.Json = json;
@@ -75,11 +70,13 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item File > Open</remarks>
         private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter =
-               "Yahoo! Pipe files (*.run)|*.run|json files (*.json)|*.json|All files (*.*)|*.*";
-            dialog.InitialDirectory = Application.StartupPath;
-            dialog.Title = "Select a JSON file";
+            var dialog = new OpenFileDialog
+            {
+                Filter = "Yahoo! Pipe files (*.run)|*.run|json files (*.json)|*.json|All files (*.*)|*.*",
+                InitialDirectory = Application.StartupPath,
+                Title = "Select a JSON file"
+            };
+
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 this.LoadFromFile(dialog.FileName);
@@ -105,8 +102,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Select All</remarks>
         private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = this.JsonViewer.Controls.Find("txtJson", true)[0];
             ((RichTextBox)c).SelectAll();
         }
 
@@ -118,8 +114,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Delete</remarks>
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = JsonViewer.Controls.Find("txtJson", true)[0];
             string text;
             if (((RichTextBox)c).SelectionLength > 0)
                 text = ((RichTextBox)c).SelectedText;
@@ -136,8 +131,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Paste</remarks>
         private void pasteToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = JsonViewer.Controls.Find("txtJson", true)[0];
             ((RichTextBox)c).Paste();
         }
 
@@ -149,8 +143,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Copy</remarks>
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = JsonViewer.Controls.Find("txtJson", true)[0];
             ((RichTextBox)c).Copy();
         }
 
@@ -162,8 +155,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Cut</remarks>
         private void cutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = JsonViewer.Controls.Find("txtJson", true)[0];
             ((RichTextBox)c).Cut();
         }
 
@@ -175,8 +167,7 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Edit > Undo</remarks>
         private void undoToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("txtJson", true)[0];
+            var c = JsonViewer.Controls.Find("txtJson", true)[0];
             ((RichTextBox)c).Undo();
         }
 
@@ -188,11 +179,9 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Viewer > Find</remarks>
         private void findToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("pnlFind", true)[0];
+            var c = JsonViewer.Controls.Find("pnlFind", true)[0];
             ((Panel)c).Visible = true;
-            Control t;
-            t = this.JsonViewer.Controls.Find("txtFind", true)[0];
+            var t = JsonViewer.Controls.Find("txtFind", true)[0];
             ((TextBox)t).Focus();
         }
 
@@ -205,14 +194,13 @@ namespace EPocalipse.Json.JsonView
         /// <!---->
         private void expandAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("tvJson", true)[0];
+            var c = JsonViewer.Controls.Find("tvJson", true)[0];
             ((TreeView)c).BeginUpdate();
             try
             {
                 if (((TreeView)c).SelectedNode != null)
                 {
-                    TreeNode topNode = ((TreeView)c).TopNode;
+                    var topNode = ((TreeView)c).TopNode;
                     ((TreeView)c).SelectedNode.ExpandAll();
                     ((TreeView)c).TopNode = topNode;
                 }
@@ -231,9 +219,8 @@ namespace EPocalipse.Json.JsonView
         /// <remarks>Menu item Viewer > Copy</remarks>
         private void copyToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("tvJson", true)[0];
-            TreeNode node = ((TreeView)c).SelectedNode;
+            var c = JsonViewer.Controls.Find("tvJson", true)[0];
+            var node = ((TreeView)c).SelectedNode;
             if (node != null)
             {
                 Clipboard.SetText(node.Text);
@@ -249,10 +236,9 @@ namespace EPocalipse.Json.JsonView
         /// <!-- JsonViewerTreeNode had to be made public to be accessible here -->
         private void copyValueToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Control c;
-            c = this.JsonViewer.Controls.Find("tvJson", true)[0];
-            JsonViewerTreeNode node = (JsonViewerTreeNode)((TreeView)c).SelectedNode;
-            if (node != null && node.JsonObject.Value != null)
+            var c = JsonViewer.Controls.Find("tvJson", true)[0];
+            var node = (JsonViewerTreeNode)((TreeView)c).SelectedNode;
+            if (node?.JsonObject.Value != null)
             {
                 Clipboard.SetText(node.JsonObject.Value.ToString());
             }

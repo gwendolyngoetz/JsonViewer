@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Forms;
+using Newtonsoft.Json.Linq;
 
 namespace EPocalipse.Json.Viewer
 {
-    class AjaxNetDateTime: ICustomTextProvider
+    internal class AjaxNetDateTime: ICustomTextProvider
     {
-        static readonly long epoch=new DateTime(1970, 1, 1).Ticks;
+        private static readonly long epoch = new DateTime(1970, 1, 1).Ticks;
 
         public string GetText(JsonObject jsonObject)
         {
-            string text = (string)jsonObject.Value; 
-            return "Ajax.Net Date:"+ConvertJSTicksToDateTime(Convert.ToInt64(text.Substring(1, text.Length - 2))).ToString();
+            var text = jsonObject.Value.ToString();
+            return "Ajax.Net Date:" + ConvertJSTicksToDateTime(Convert.ToInt64(text.Substring(1, text.Length - 2)));
         }
 
         private DateTime ConvertJSTicksToDateTime(long ticks)
@@ -20,75 +18,49 @@ namespace EPocalipse.Json.Viewer
             return new DateTime((ticks * 10000) + epoch);
         }
 
-        public string DisplayName
-        {
-            get { return "Ajax.Net DateTime"; }
-        }
+        public string DisplayName => "Ajax.Net DateTime";
 
         public bool CanVisualize(JsonObject jsonObject)
         {
-            if (jsonObject.JsonType == JsonType.Value && jsonObject.Value is string)
+            if (jsonObject.JsonType == JsonType.Value && jsonObject.Value is JValue jvalue)
             {
-                string text = (string)jsonObject.Value;
-                return (text.Length > 2 && text[0] == '@' && text[text.Length - 1] == '@');
+                var text = jvalue.Value.ToString();
+                return text.Length > 2 && text[0] == '@' && text[text.Length - 1] == '@';
             }
             return false;
         }
     }
 
-    class CustomDate : ICustomTextProvider
+    internal class CustomDate : ICustomTextProvider
     {
         public string GetText(JsonObject jsonObject)
         {
-            int year,month,day,hour,min,second,ms;
-            year = (int)(long)jsonObject.Fields["y"].Value;
-            month = (int)(long)jsonObject.Fields["M"].Value;
-            day = (int)(long)jsonObject.Fields["d"].Value;
-            hour = (int)(long)jsonObject.Fields["h"].Value;
-            min = (int)(long)jsonObject.Fields["m"].Value;
-            second = (int)(long)jsonObject.Fields["s"].Value;
-            ms = (int)(long)jsonObject.Fields["ms"].Value;
+            var year = GetValue(jsonObject.Fields, "y");
+            var month = GetValue(jsonObject.Fields, "M");
+            var day = GetValue(jsonObject.Fields, "d");
+            var hour = GetValue(jsonObject.Fields, "h");
+            var min =GetValue(jsonObject.Fields, "m");
+            var second = GetValue(jsonObject.Fields, "s");
+            var ms = GetValue(jsonObject.Fields, "ms");
+
             return new DateTime(year, month, day, hour, min, second, ms).ToString();
         }
 
-        public string DisplayName
+        private int GetValue(JsonFields fields, string key)
         {
-            get { return "Date"; }
+            if (fields[key].Value is JValue value)
+            {
+                return (int)(long)value.Value;
+            }
+
+            return 0;
         }
+
+        public string DisplayName => "Date";
 
         public bool CanVisualize(JsonObject jsonObject)
         {
             return jsonObject.ContainsFields("y","M","d","h","m","s","ms");
-        }
-    }
-
-    class Sample : IJsonVisualizer
-    {
-        TextBox tb;
-
-        public Control GetControl(JsonObject jsonObject)
-        {
-            if (tb == null)
-            {
-                tb = new TextBox();
-                tb.Multiline = true;
-            }
-            return tb;
-        }
-
-        public void Visualize(JsonObject jsonObject)
-        {
-            tb.Text = String.Format("Array {0} has {1} items", jsonObject.Id, jsonObject.Fields.Count);
-        }
-
-        public string DisplayName
-        {
-            get { return "Sample"; }
-        }
-
-        public bool CanVisualize(JsonObject jsonObject)
-        {
-            return (jsonObject.JsonType == JsonType.Array) && (jsonObject.ContainsFields("[0]"));
         }
     }
 }

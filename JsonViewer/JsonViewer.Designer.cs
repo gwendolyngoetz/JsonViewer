@@ -68,6 +68,7 @@ namespace EPocalipse.Json.Viewer
             this.lblError = new System.Windows.Forms.LinkLabel();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
+            ((System.ComponentModel.ISupportInitialize)(this.spcViewer)).BeginInit();
             this.spcViewer.Panel1.SuspendLayout();
             this.spcViewer.Panel2.SuspendLayout();
             this.spcViewer.SuspendLayout();
@@ -128,46 +129,46 @@ namespace EPocalipse.Json.Viewer
             this.mnuCopyName,
             this.mnuCopyValue});
             this.mnuTree.Name = "mnuTree";
-            this.mnuTree.Size = new System.Drawing.Size(135, 98);
+            this.mnuTree.Size = new System.Drawing.Size(138, 120);
             this.mnuTree.Opening += new System.ComponentModel.CancelEventHandler(this.mnuTree_Opening);
             // 
             // mnuFind
             // 
             this.mnuFind.Name = "mnuFind";
-            this.mnuFind.Size = new System.Drawing.Size(134, 22);
+            this.mnuFind.Size = new System.Drawing.Size(137, 22);
             this.mnuFind.Text = "&Find";
             this.mnuFind.Click += new System.EventHandler(this.findToolStripMenuItem_Click);
             // 
             // mnuExpandAll
             // 
             this.mnuExpandAll.Name = "mnuExpandAll";
-            this.mnuExpandAll.Size = new System.Drawing.Size(134, 22);
+            this.mnuExpandAll.Size = new System.Drawing.Size(137, 22);
             this.mnuExpandAll.Text = "Expand &All";
             this.mnuExpandAll.Click += new System.EventHandler(this.expandallToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(131, 6);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(134, 6);
             // 
             // mnuCopy
             // 
             this.mnuCopy.Name = "mnuCopy";
-            this.mnuCopy.Size = new System.Drawing.Size(134, 22);
+            this.mnuCopy.Size = new System.Drawing.Size(137, 22);
             this.mnuCopy.Text = "&Copy";
             this.mnuCopy.Click += new System.EventHandler(this.mnuCopy_Click);
             // 
             // mnuCopyName
             // 
             this.mnuCopyName.Name = "mnuCopyName";
-            this.mnuCopyName.Size = new System.Drawing.Size(152, 22);
+            this.mnuCopyName.Size = new System.Drawing.Size(137, 22);
             this.mnuCopyName.Text = "Copy Name";
             this.mnuCopyName.Click += new System.EventHandler(this.mnuCopyName_Click);
             // 
             // mnuCopyValue
             // 
             this.mnuCopyValue.Name = "mnuCopyValue";
-            this.mnuCopyValue.Size = new System.Drawing.Size(134, 22);
+            this.mnuCopyValue.Size = new System.Drawing.Size(137, 22);
             this.mnuCopyValue.Text = "Copy &Value";
             this.mnuCopyValue.Click += new System.EventHandler(this.mnuCopyValue_Click);
             // 
@@ -463,6 +464,7 @@ namespace EPocalipse.Json.Viewer
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.JsonViewer_KeyDown);
             this.spcViewer.Panel1.ResumeLayout(false);
             this.spcViewer.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.spcViewer)).EndInit();
             this.spcViewer.ResumeLayout(false);
             this.mnuTree.ResumeLayout(false);
             this.pnlFind.ResumeLayout(false);

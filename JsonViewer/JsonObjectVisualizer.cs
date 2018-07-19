@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 
 namespace EPocalipse.Json.Viewer
@@ -15,23 +9,19 @@ namespace EPocalipse.Json.Viewer
             InitializeComponent();
         }
 
-        string IJsonViewerPlugin.DisplayName
-        {
-            get { return "Property Grid"; }
-        }
+        public string DisplayName => "Property Grid";
 
-        Control IJsonVisualizer.GetControl(JsonObject jsonObject)
+        public Control GetControl(JsonObject jsonObject)
         {
             return this;
         }
 
-        void IJsonVisualizer.Visualize(JsonObject jsonObject)
+        public void Visualize(JsonObject jsonObject)
         {
-            this.pgJsonObject.SelectedObject = jsonObject;
+            pgJsonObject.SelectedObject = jsonObject;
         }
 
-
-        bool IJsonViewerPlugin.CanVisualize(JsonObject jsonObject)
+        public bool CanVisualize(JsonObject jsonObject)
         {
             return true;
         }

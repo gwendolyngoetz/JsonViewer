@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace EPocalipse.Json.Viewer
 {
-    class JsonObjectTypeDescriptionProvider : TypeDescriptionProvider
+    internal class JsonObjectTypeDescriptionProvider : TypeDescriptionProvider
     {
         public override ICustomTypeDescriptor GetTypeDescriptor(Type objectType, object instance)
         {
@@ -13,7 +13,7 @@ namespace EPocalipse.Json.Viewer
         }
     }
 
-    class JsonTreeObjectTypeDescriptor : CustomTypeDescriptor, ICustomTypeDescriptor
+    internal class JsonTreeObjectTypeDescriptor : CustomTypeDescriptor, ICustomTypeDescriptor
     {
         JsonObject _jsonObject;
         PropertyDescriptorCollection _propertyCollection;
@@ -55,7 +55,7 @@ namespace EPocalipse.Json.Viewer
         }
     }
 
-    class JsonTreeObjectPropertyDescriptor : PropertyDescriptor
+    internal class JsonTreeObjectPropertyDescriptor : PropertyDescriptor
     {
         JsonObject _jsonObject;
         JsonObject[] _jsonObjects;
@@ -70,7 +70,7 @@ namespace EPocalipse.Json.Viewer
 
         private void InitJsonObject()
         {
-            List<JsonObject> jsonObjectList = new List<JsonObject>();
+            var jsonObjectList = new List<JsonObject>();
             foreach (JsonObject field in _jsonObject.Fields)
             {
                 jsonObjectList.Add(field);
@@ -83,13 +83,7 @@ namespace EPocalipse.Json.Viewer
             return false;
         }
 
-        public override Type ComponentType
-        {
-            get
-            {
-                return null;
-            }
-        }
+        public override Type ComponentType => null;
 
         public override object GetValue(object component)
         {

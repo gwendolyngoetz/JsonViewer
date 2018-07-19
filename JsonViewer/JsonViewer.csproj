@@ -77,13 +77,11 @@
       <DependentUpon>GridVisualizer.cs</DependentUpon>
     </Compile>
     <Compile Include="InternalPlugins.cs" />
-    <Compile Include="JsonObjectTypeConverter.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ViewerConfiguration.cs" />
     <Compile Include="IJsonViewerPlugin.cs" />
     <Compile Include="JsonObjectTree.cs">
       <SubType>Code</SubType>

@@ -38,12 +38,11 @@ namespace EPocalipse.Json.Viewer
 
         private void FillHeaders(JsonObject jsonObject)
         {
-            foreach (JsonObject header in jsonObject.Fields)
+            foreach (var header in jsonObject.Fields)
             {
-                JsonObject nameHeader = header.Fields["name"];
-                if (nameHeader.JsonType == JsonType.Value && nameHeader.Value is string)
+                var nameHeader = header.Fields["name"];
+                if (nameHeader.JsonType == JsonType.Value && nameHeader.Value is string name)
                 {
-                    string name = (string)nameHeader.Value;
                     lvGrid.Columns.Add(name);
                 }
             }
@@ -51,34 +50,33 @@ namespace EPocalipse.Json.Viewer
 
         private void FillRows(JsonObject jsonObject)
         {
-            string value;
-            foreach (JsonObject row in jsonObject.Fields)
+            foreach (var row in jsonObject.Fields)
             {
-                List<string> rowValues = new List<string>();
-                foreach (JsonObject rowValue in row.Fields)
+                var rowValues = new List<string>();
+                foreach (var rowValue in row.Fields)
                 {
+                    string value;
                     if (rowValue.JsonType == JsonType.Value && rowValue.Value != null)
                     {
                         value = rowValue.Value.ToString();
                     }
                     else
+                    {
                         value = String.Empty;
+                    }
+
                     rowValues.Add(value);
                 }
-                ListViewItem rowItem = new ListViewItem(rowValues.ToArray());
+                var rowItem = new ListViewItem(rowValues.ToArray());
                 lvGrid.Items.Add(rowItem);
             }
         }
 
-        string IJsonViewerPlugin.DisplayName
-        {
-            get { return "Grid"; }
-        }
+        string IJsonViewerPlugin.DisplayName => "Grid";
 
         bool IJsonViewerPlugin.CanVisualize(JsonObject jsonObject)
         {
-            return jsonObject.ContainsField("headers", JsonType.Array) &&
-                jsonObject.ContainsField("rows", JsonType.Array);
+            return jsonObject.ContainsField("headers", JsonType.Array) && jsonObject.ContainsField("rows", JsonType.Array);
         }
     }
 }

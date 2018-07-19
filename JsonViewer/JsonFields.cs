@@ -1,19 +1,16 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Collections;
 
 namespace EPocalipse.Json.Viewer
 {
     public class JsonFields : IEnumerable<JsonObject>
     {
-        private List<JsonObject> _fields = new List<JsonObject>();
-        private Dictionary<string, JsonObject> _fieldsById = new Dictionary<string, JsonObject>();
-        private JsonObject _parent;
+        private readonly List<JsonObject> _fields = new List<JsonObject>();
+        private readonly Dictionary<string, JsonObject> _fieldsById = new Dictionary<string, JsonObject>();
 
         public JsonFields(JsonObject parent)
         {
-            _parent = parent;
+            Parent = parent;
         }
 
         public IEnumerator<JsonObject> GetEnumerator()
@@ -28,38 +25,19 @@ namespace EPocalipse.Json.Viewer
 
         public void Add(JsonObject field)
         {
-            field.Parent = _parent;
+            field.Parent = Parent;
             _fields.Add(field);
             _fieldsById[field.Id] = field;
-            _parent.Modified();
+            Parent.Modified();
         }
 
-        public int Count
-        {
-            get
-            {
-                return _fields.Count;
-            }
-        }
+        public int Count => _fields.Count;
 
-        public JsonObject this[int index]
-        {
-            get
-            {
-                return _fields[index];
-            }
-        }
+        public JsonObject Parent { get; }
 
-        public JsonObject this[string id]
-        {
-            get
-            {
-                JsonObject result;
-                if (_fieldsById.TryGetValue(id, out result))
-                    return result;
-                return null;
-            }
-        }
+        public JsonObject this[int index] => _fields[index];
+
+        public JsonObject this[string id] => _fieldsById.TryGetValue(id, out var result) ? result : null;
 
         public bool ContainId(string id)
         {
